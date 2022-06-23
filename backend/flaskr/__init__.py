@@ -120,7 +120,7 @@ def create_app(test_config=None):
         difficulty = data.get('difficulty', None)
         category = data.get('category', None)
 
-        quest_var_count = len(list(filter(lambda x: x == '',
+        quest_var_count = len(list(filter(lambda x: x == '' or x is None,
                                           [question, answer,
                                            difficulty, category])))
         if quest_var_count > 0:

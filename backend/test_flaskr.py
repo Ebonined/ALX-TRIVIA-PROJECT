@@ -1,10 +1,17 @@
 import os
+from plistlib import load
 import unittest
 import json
 from flask_sqlalchemy import SQLAlchemy
 
 from flaskr import create_app
 from models import setup_db, Question, Category
+from dotenv import load_dotenv
+
+# initialize the environment variables
+load_dotenv()
+dbpassword = os.getenv('DBPASSWORD')
+dbusername = os.getenv('DBUSERNAME')
 
 
 class TriviaTestCase(unittest.TestCase):
@@ -16,7 +23,7 @@ class TriviaTestCase(unittest.TestCase):
         self.client = self.app.test_client
         self.database_name = "trivia_test"
         self.database_path = "postgresql://{}:{}@{}/{}"\
-            .format('student', 'student', 'localhost:5432',
+            .format(dbusername, dbusername, 'localhost:5432',
                     self.database_name)
         setup_db(self.app, self.database_path)
 
@@ -33,7 +40,16 @@ class TriviaTestCase(unittest.TestCase):
 
     def test_delete_correct_question(self):
         """Test if API can delete question"""
-        res = self.client().delete('/questions/18')
+
+        # try looping true until existing `id` is hit
+        i = 0                           # Starting id or index
+        while True:
+            try:
+                res = self.client().delete(f'/questions/{i}')
+                assert res.status_code == 200
+                break
+            except Exception:
+                i += 1
 
         self.assertEqual(res.status_code, 200)
 
@@ -57,6 +73,33 @@ class TriviaTestCase(unittest.TestCase):
         res = self.client().get('/questions?page=1')
 
         self.assertEqual(res.status_code, 200)
+
+    def test_right_question_creation(self):
+
+        """This tests for when all the variables needed for
+            question creation is supplied"""
+
+        json = {'question': 'just another test question',
+                'answer': 'just another test answers',
+                'difficulty': 1,
+                'category': 4}
+
+        res = self.client().post('/questions', json=json)
+
+        self.assertEqual(res.status_code, 200)
+
+    def test_wrong_question_creation(self):
+
+        """This tests for when some or all the variables needed
+           are not supplied"""
+
+        json = {'question': 'just another test question',
+                'answer': 'just another test answers',
+                'difficulty': 1}
+
+        res = self.client().post('/questions', json=json)
+
+        self.assertEqual(res.status_code, 400)
 
 
 # Make the tests conveniently executable

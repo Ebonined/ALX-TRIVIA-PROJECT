@@ -9818,3 +9818,5 @@ frontend/node_modules/yargs-parser/package.json
 frontend/node_modules/yargs-parser/README.md
 frontend/node_modules/yargs-parser/lib/tokenize-arg-string.js
 frontend/package-lock.json
+.vscode/launch.json
+backend/flaskr/__pycache__
