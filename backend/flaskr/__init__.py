@@ -145,7 +145,6 @@ def create_app(test_config=None):
 
     @app.route('/search_questions', methods=['POST'])
     def just_search():
-        
         try:
             search_string = request.get_json()['searchTerm']
 
