@@ -107,7 +107,7 @@ class QuestionView extends Component {
       }
       },
       error: (error) => {
-        alert('Unable to load questions. Please try your request again');
+        this.getQuestions();
         return;
       },
     });

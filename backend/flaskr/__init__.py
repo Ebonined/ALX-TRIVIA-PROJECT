@@ -142,26 +142,25 @@ def create_app(test_config=None):
 
     @app.route('/search_questions', methods=['POST'])
     def just_search():
-        try:
-            search_string = request.get_json()['searchTerm']
 
-            questions = Question.query.filter(Question.question.
-                                              ilike(f'%{search_string}%'))
-            questions_formatted = [question.format() for question in questions]
+        search_string = request.get_json()['searchTerm']
 
-            if questions_formatted:
-                current_category = questions_formatted[-1]['category']
-            else:
-                current_category = 'All'
+        questions = Question.query.filter(Question.question.
+                                          ilike(f'%{search_string}%'))
+        questions_formatted = [question.format() for question in questions]
 
-            return jsonify({
-                'success': True,
-                'questions': questions_formatted,
-                'totalQuestions': len(questions_formatted),
-                'currentCategory': current_category
-            })
-        except Exception:
-            abort(422)
+        if questions_formatted:
+            current_category = questions_formatted[-1]['category']
+        else:
+            current_category = 'All'
+            abort(404)
+
+        return jsonify({
+            'success': True,
+            'questions': questions_formatted,
+            'totalQuestions': len(questions_formatted),
+            'currentCategory': current_category
+        })
 
     @app.route('/categories/<int:id>/questions', methods=['GET'])
     def get_by_categories(id):
@@ -196,6 +195,10 @@ def create_app(test_config=None):
         previous_questions = body['previous_questions']
         quiz_category = body['quiz_category']
 
+        # Get all valid category id in database
+        cate_id = Category.query.with_entities(Category.id).all()
+        cate_id_list = [cate.id for cate in cate_id]
+
         def get_question_by_id(Question, id):
             return Question.query.filter_by(id=id).one_or_none()
 
@@ -208,7 +211,12 @@ def create_app(test_config=None):
             ids = Question.query.with_entities(Question.id).\
                                     filter_by(category=category_id).\
                                     order_by(Question.id).all()
-        ids_list = [val.id for val in ids]
+        print(cate_id_list)
+        if category_id not in cate_id_list:
+            abort(404)
+        else:
+            ids_list = [val.id for val in ids]
+
         if not previous_questions:
             random.shuffle(ids_list)
             random_index = ids_list[0]
